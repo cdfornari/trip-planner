@@ -1,0 +1,229 @@
+version: '3.4'
+
+services:
+
+  nats-server:
+    container_name: nats-server
+    image: nats:latest
+    ports:
+      - 4222:4222
+      - 8222:8222
+
+  eventstore:
+    container_name: eventstore
+    image: eventstore/eventstore:24.10.1-alpha-arm64v8
+    environment:
+      - EVENTSTORE_CLUSTER_SIZE=1
+      - EVENTSTORE_RUN_PROJECTIONS=All
+      - EVENTSTORE_START_STANDARD_PROJECTIONS=true
+      - EVENTSTORE_NODE_PORT=2113
+      - EVENTSTORE_INSECURE=true
+      - EVENTSTORE_ENABLE_ATOM_PUB_OVER_HTTP=true
+    ports:
+      - "2113:2113"
+    volumes:
+      - type: volume
+        source: eventstore-volume-data
+        target: /var/lib/eventstore
+      - type: volume
+        source: eventstore-volume-logs
+        target: /var/log/eventstore
+
+  api-gateway:
+    container_name: api-gateway
+    restart: always
+    build:
+      context: .
+      dockerfile: ./apps/api-gateway/Dockerfile
+      target: build
+    command: npm run start:dev
+    environment:
+      - PORT=${API_GATEWAY_PORT}
+      - NATS_SERVER=nats://nats-server:4222
+    depends_on:
+      - nats-server
+    volumes:
+      - .:/src/app
+      - /src/app/node_modules
+    ports:
+      - ${API_GATEWAY_PORT}:3000
+
+  auth-ms:
+    container_name: auth-ms
+    restart: always
+    build:
+      context: .
+      dockerfile: ./apps/auth/Dockerfile
+      target: build
+    command: npm run start:dev auth
+    environment:
+      - AUTHDB_HOST=users-db
+      - AUTHDB_PORT=${AUTHDB_PORT}
+      - AUTHDB_PASSWORD=${AUTHDB_PASSWORD}
+      - NATS_SERVER=nats://nats-server:4222
+    depends_on:
+      - api-gateway
+      - users-db
+    volumes:
+      - .:/src/app
+      - /src/app/node_modules
+
+  users-db:
+    container_name: users-db
+    image: redis/redis-stack:latest
+    healthcheck:
+      test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
+      interval: 1s
+      timeout: 3s
+      retries: 5
+    command: [ "redis-server", "--requirepass", "${AUTHDB_PASSWORD}" ]
+    ports:
+      - ${AUTHDB_PORT}:6379
+      - 8011:8001
+    volumes:
+      - ./data/redis_data:/data
+
+  activity-booking-ms:
+    container_name: activity-booking-ms
+    restart: always
+    build:
+      context: .
+      dockerfile: ./apps/activity-booking/Dockerfile
+      target: build
+    command: npm run start:dev activity-booking
+    environment:
+      - PORT=${API_GATEWAY_PORT}
+      - NATS_SERVERS=nats://nats-server:4222
+    depends_on:
+      - eventstore
+    volumes:
+      - .:/src/app
+      - /src/app/node_modules
+
+  billing-ms:
+    container_name: billing-ms
+    restart: always
+    build:
+      context: .
+      dockerfile: ./apps/billing/Dockerfile
+      target: build
+    command: npm run start:dev billing
+    environment:
+      - PORT=${API_GATEWAY_PORT}
+      - NATS_SERVERS=nats://nats-server:4222
+    depends_on:
+      - eventstore
+    volumes:
+      - .:/src/app
+      - /src/app/node_modules
+
+  flight-booking-ms:
+    container_name: flight-booking-ms
+    restart: always
+    build:
+      context: .
+      dockerfile: ./apps/flight-booking/Dockerfile
+      target: build
+    command: npm run start:dev flight-booking
+    environment:
+      - PORT=${API_GATEWAY_PORT}
+      - NATS_SERVERS=nats://nats-server:4222
+    depends_on:
+      - eventstore
+    volumes:
+      - .:/src/app
+      - /src/app/node_modules
+
+  hotel-booking-ms:
+    container_name: hotel-booking-ms
+    restart: always
+    build:
+      context: .
+      dockerfile: ./apps/hotel-booking/Dockerfile
+      target: build
+    command: npm run start:dev hotel-booking
+    environment:
+      - PORT=${API_GATEWAY_PORT}
+      - NATS_SERVERS=nats://nats-server:4222
+    depends_on:
+      - eventstore
+    volumes:
+      - .:/src/app
+      - /src/app/node_modules
+
+  vehicle-rental-ms:
+    container_name: vehicle-rental-ms
+    restart: always
+    build:
+      context: .
+      dockerfile: ./apps/vehicle-rental/Dockerfile
+      target: build
+    command: npm run start:dev vehicle-rental
+    environment:
+      - PORT=${API_GATEWAY_PORT}
+      - NATS_SERVERS=nats://nats-server:4222
+    depends_on:
+      - eventstore
+    volumes:
+      - .:/src/app
+      - /src/app/node_modules
+
+  query-db:
+    container_name: query-db
+    image: surrealdb/surrealdb:latest
+    environment:
+      - DB_USER=$QUERY_DB_USER
+      - DB_PASSWORD=$QUERY_DB_PASSWORD
+    entrypoint:
+      - /surreal
+      - start
+      - --user
+      - $QUERY_DB_USER
+      - --pass
+      - $QUERY_DB_PASSWORD
+    ports:
+      - 8000:8000
+    volumes:
+      - ./data/query_data:/data
+
+  query-api:
+    container_name: query-api
+    restart: always
+    build:
+      context: .
+      dockerfile: ./apps/query-api/Dockerfile
+      target: build
+    command: npm run start:dev query-api
+    environment:
+      - PORT=${QUERY_API_PORT}
+      - NATS_SERVERS=nats://nats-server:4222
+    depends_on:
+      - eventstore
+      - query-db
+    ports:
+      - ${QUERY_API_PORT}:3000
+    volumes:
+      - .:/src/app
+      - /src/app/node_modules
+
+  projectors:
+    container_name: projectors
+    restart: always
+    build:
+      context: .
+      dockerfile: ./apps/projectors/Dockerfile
+      target: build
+    command: npm run start:dev projectors
+    environment:
+      - PORT=${QUERY_API_PORT}
+      - NATS_SERVERS=nats://nats-server:4222
+    depends_on:
+      - eventstore
+      - query-db
+    volumes:
+      - .:/src/app
+      - /src/app/node_modules
+
+volumes:
+  eventstore-volume-data:
+  eventstore-volume-logs:
