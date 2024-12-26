@@ -20,7 +20,7 @@ services:
       - EVENTSTORE_INSECURE=true
       - EVENTSTORE_ENABLE_ATOM_PUB_OVER_HTTP=true
     ports:
-      - "2113:2113"
+      - ${EVENT_STORE_PORT}:2113
     volumes:
       - type: volume
         source: eventstore-volume-data
@@ -61,6 +61,9 @@ services:
       - AUTHDB_PORT=${AUTHDB_PORT}
       - AUTHDB_PASSWORD=${AUTHDB_PASSWORD}
       - NATS_SERVER=nats://nats-server:4222
+      - EVENT_STORE_HOST=eventstore
+      - EVENT_STORE_PORT=2113
+      - JWT_SECRET=${JWT_SECRET}
     depends_on:
       - api-gateway
       - users-db
@@ -76,7 +79,7 @@ services:
       interval: 1s
       timeout: 3s
       retries: 5
-    command: [ "redis-server", "--requirepass", "${AUTHDB_PASSWORD}" ]
+    command: [ "redis-server", "--requirepass", "${AUTHDB_PASSWORD}", "--loadmodule", "/opt/redis-stack/lib/redisearch.so", "--loadmodule", "/opt/redis-stack/lib/rejson.so" ]
     ports:
       - ${AUTHDB_PORT}:6379
       - 8011:8001
