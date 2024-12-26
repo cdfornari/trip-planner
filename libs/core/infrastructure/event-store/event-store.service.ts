@@ -12,7 +12,7 @@ export class EventStoreService implements EventStore {
     @InjectEventStore() private readonly client: EventStoreDBClient,
   ) {}
 
-  async appendEvents(
+  async appendEventsFrom(
     dispatcher: AggregateRoot<ValueObject<any>>,
   ): Promise<DomainEvent[]> {
     const events = dispatcher.pullEvents();
