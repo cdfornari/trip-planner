@@ -13,7 +13,7 @@ export const DomainEventFactory = <T extends object>({
   name,
   dispatcher,
   context,
-}: Omit<DomainEvent<T>, 'timestamp' | 'dispatcherId'> & {
+}: Omit<DomainEvent<T>, 'timestamp' | 'dispatcherId' | 'position'> & {
   dispatcher: AggregateRoot<ValueObject<any>>;
 }): DomainEvent<T> => ({
   dispatcherId: dispatcher.uid,
