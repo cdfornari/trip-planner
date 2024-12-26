@@ -3,7 +3,7 @@ import { DomainEvent } from '../domain/events';
 import { ValueObject } from '../domain/value-object';
 
 export interface EventStore {
-  appendEvents(
+  appendEventsFrom(
     dispatcher: AggregateRoot<ValueObject<any>>,
   ): Promise<DomainEvent[]>;
   getEventsByStream(stream: string): Promise<DomainEvent[]>;
