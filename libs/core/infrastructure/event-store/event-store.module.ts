@@ -6,6 +6,7 @@ import {
 import { catchError, defer, lastValueFrom, retry, timer } from 'rxjs';
 import { CONNECTION_NAME } from './connection-name';
 import { EventStoreDBClient } from '@eventstore/db-client';
+import { EventStoreService } from './event-store.service';
 
 @Global()
 @Module({})
@@ -18,22 +19,22 @@ export class EventStoreModule extends ConfigurableModuleClass {
     const {
       host,
       port,
-      username,
-      password,
       retryAttempts = 9,
       retryDelay = 3000,
     } = options;
-    const connectionUrl = `esdb+discover://${username}:${password}@${host}:${port}`;
     const logger = new Logger('EventStoreModule');
     const connectionProvider = {
       provide: CONNECTION_NAME,
       useFactory: async (): Promise<any> =>
         await lastValueFrom(
           defer(async () => {
-            const client = EventStoreDBClient.connectionString`${connectionUrl}`;
-            return {
-              ...client,
-            };
+            const client = new EventStoreDBClient({
+              endpoint:`${host}:${port}`,
+            }, {
+              insecure: true,
+            });
+            await client.listProjections();
+            return client;
           }).pipe(
             retry({
               count: retryAttempts,
@@ -57,8 +58,8 @@ export class EventStoreModule extends ConfigurableModuleClass {
     };
     return {
       module: EventStoreModule,
-      providers: [connectionProvider],
-      exports: [connectionProvider],
+      providers: [connectionProvider, EventStoreService],
+      exports: [connectionProvider, EventStoreService],
     };
   }
 }

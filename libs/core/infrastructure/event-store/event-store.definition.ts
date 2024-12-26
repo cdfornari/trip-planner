@@ -3,8 +3,6 @@ import { ConfigurableModuleBuilder } from '@nestjs/common';
 export type EventStoreOptions = {
   host: string;
   port: number;
-  username: string;
-  password: string;
   retryAttempts?: number;
   retryDelay?: number;
 };

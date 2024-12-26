@@ -2,7 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { EventStore } from 'libs/core/application/event-store';
 import { DomainEvent } from 'libs/core/domain/events';
 import { InjectEventStore } from './inject-event-store.decorator';
-import { EventStoreDBClient, jsonEvent, JSONType } from '@eventstore/db-client';
+import {
+  EventStoreDBClient,
+  jsonEvent,
+  JSONType,
+  NO_STREAM,
+} from '@eventstore/db-client';
 import { AggregateRoot } from 'libs/core/domain/aggregate-root';
 import { ValueObject } from 'libs/core/domain/value-object';
 
@@ -30,8 +35,12 @@ export class EventStoreService implements EventStore {
         metadata: { timestamp: event.timestamp.toISOString() },
       }),
     );
+    const expectedRevision =
+      dispatcher.version - events.length === 0
+        ? NO_STREAM
+        : BigInt(dispatcher.version - events.length);
     await this.client.appendToStream(dispatcher.uid, serializedEvents, {
-      expectedRevision: BigInt(dispatcher.version - events.length),
+      expectedRevision,
     });
     return events;
   }
