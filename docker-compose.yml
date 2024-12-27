@@ -40,6 +40,8 @@ services:
     environment:
       - PORT=${API_GATEWAY_PORT}
       - NATS_SERVER=nats://nats-server:4222
+      - DEFAULT_LANGUAGE=${DEFAULT_LANGUAGE}
+      - TRANSLATION_PATH=../../../resources/i18n
     depends_on:
       - nats-server
     volumes:

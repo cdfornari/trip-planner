@@ -167,7 +167,7 @@ export class AuthService implements OnApplicationBootstrap {
       console.log(error);
       throw new RpcException({
         status: 401,
-        message: 'Invalid token',
+        message: 'INVALID_TOKEN',
       });
     }
   }

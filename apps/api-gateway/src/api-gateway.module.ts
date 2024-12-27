@@ -1,10 +1,23 @@
 import { Module } from '@nestjs/common';
-import { ApiGatewayController } from './api-gateway.controller';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { join } from 'path';
+import {
+  AcceptLanguageResolver,
+  CookieResolver,
+  HeaderResolver,
+  I18nJsonLoader,
+  I18nModule,
+  QueryResolver,
+} from 'nestjs-i18n';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ApiGatewayController } from './api-gateway.controller';
 import { Environment } from 'libs/core/utils/environment';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     ClientsModule.register([
       {
         name: Environment.natsServer,
@@ -14,6 +27,31 @@ import { Environment } from 'libs/core/utils/environment';
         },
       },
     ]),
+    I18nModule.forRootAsync({
+      useFactory: (
+        configService: ConfigService<Record<string, unknown>, true>,
+      ) => ({
+        fallbackLanguage: configService.getOrThrow('DEFAULT_LANGUAGE'),
+        fallbacks: {
+          'en-*': 'en',
+          'es-*': 'es',
+          en: 'en',
+          es: 'es',
+        },
+        loaderOptions: {
+          path: join(__dirname, configService.getOrThrow('TRANSLATION_PATH')),
+          watch: true,
+        },
+        loader: I18nJsonLoader,
+      }),
+      resolvers: [
+        new QueryResolver(['lang', 'l']),
+        new HeaderResolver(['x-custom-lang']),
+        new CookieResolver(),
+        AcceptLanguageResolver,
+      ],
+      inject: [ConfigService],
+    }),
   ],
   controllers: [ApiGatewayController],
   providers: [],

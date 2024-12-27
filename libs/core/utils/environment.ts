@@ -6,6 +6,8 @@ const envVariables = {
   eventStoreHost: process.env.EVENT_STORE_HOST,
   eventStorePort: Number(process.env.EVENT_STORE_PORT),
   jwtSecret: process.env.JWT_SECRET,
+  defaultLanguage: process.env.DEFAULT_LANGUAGE,
+  translationsPath: process.env.TRANSLATION_PATH,
 };
 
 export class Environment {
@@ -30,5 +32,13 @@ export class Environment {
 
   static get jwtSecret() {
     return envVariables.jwtSecret;
+  }
+
+  static get defaultLanguage() {
+    return envVariables.defaultLanguage || 'en';
+  }
+
+  static get translationsPath() {
+    return envVariables.translationsPath || './resources/i18n/';
   }
 }

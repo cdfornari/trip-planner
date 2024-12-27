@@ -1,0 +1,6 @@
+{
+  "USER_ALREADY_EXISTS": "Un usuario con este correo ya existe",
+  "USER_NOT_FOUND": "No encontramos tu usuario",
+  "INVALID_PASSWORD": "Credenciales inválidas",
+  "INVALID_TOKEN": "Token inválido"
+}
