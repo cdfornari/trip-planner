@@ -4,9 +4,12 @@ import { DomainEvent } from 'libs/core/domain/events';
 import { InjectEventStore } from './inject-event-store.decorator';
 import {
   EventStoreDBClient,
+  eventTypeFilter,
   jsonEvent,
   JSONType,
   NO_STREAM,
+  persistentSubscriptionToAllSettingsFromDefaults,
+  RETRY,
 } from '@eventstore/db-client';
 import { AggregateRoot } from 'libs/core/domain/aggregate-root';
 import { ValueObject } from 'libs/core/domain/value-object';
@@ -62,5 +65,59 @@ export class EventStoreService implements EventStore {
       });
     }
     return events;
+  }
+
+  async createSubscriptionGroup(
+    eventType: string,
+    groupName: string,
+  ): Promise<void> {
+    await this.client.createPersistentSubscriptionToAll(
+      groupName,
+      persistentSubscriptionToAllSettingsFromDefaults(),
+      {
+        filter: eventTypeFilter({ prefixes: [eventType] }),
+      },
+    );
+  }
+
+  async subscribeToGroup(
+    groupName: string,
+    onEvent: (
+      event: DomainEvent,
+      ack: () => Promise<void>,
+      nack: (error: any) => Promise<void>,
+    ) => Promise<void>,
+  ): Promise<void> {
+    const subscription =
+      this.client.subscribeToPersistentSubscriptionToAll(groupName);
+    for await (const resolvedEvent of subscription) {
+      const context = JSON.parse(
+        (resolvedEvent.event.data as JSONType).toString(),
+      );
+      try {
+        console.log(
+          `handling event ${resolvedEvent.event?.type} with retryCount ${resolvedEvent.retryCount}`,
+        );
+        await onEvent(
+          {
+            dispatcherId: resolvedEvent.event.streamId,
+            name: resolvedEvent.event.type,
+            context,
+            timestamp: JSON.parse(resolvedEvent.event.metadata.toString())
+              .timestamp,
+            position: Number(resolvedEvent.event.revision),
+          },
+          async () => {
+            await subscription.ack(resolvedEvent);
+          },
+          async (error) => {
+            await subscription.nack(RETRY, error.toString(), resolvedEvent);
+          },
+        );
+        //await subscription.ack(resolvedEvent);
+      } catch (error) {
+        await subscription.nack(RETRY, error.toString(), resolvedEvent);
+      }
+    }
   }
 }

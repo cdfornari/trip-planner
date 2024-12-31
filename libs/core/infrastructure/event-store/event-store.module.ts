@@ -1,12 +1,14 @@
+import { DiscoveryModule } from '@nestjs/core';
 import { DynamicModule, Global, Logger, Module } from '@nestjs/common';
+import { EventStoreDBClient } from '@eventstore/db-client';
+import { catchError, defer, lastValueFrom, retry, timer } from 'rxjs';
 import {
   ConfigurableModuleClass,
   OPTIONS_TYPE,
 } from './event-store.definition';
-import { catchError, defer, lastValueFrom, retry, timer } from 'rxjs';
 import { CONNECTION_NAME } from './connection-name';
-import { EventStoreDBClient } from '@eventstore/db-client';
 import { EventStoreService } from './event-store.service';
+import { SubscriptionInit } from './subscription-init';
 
 @Global()
 @Module({})
@@ -16,23 +18,21 @@ export class EventStoreModule extends ConfigurableModuleClass {
   }
 
   static forRoot(options: typeof OPTIONS_TYPE): DynamicModule {
-    const {
-      host,
-      port,
-      retryAttempts = 9,
-      retryDelay = 3000,
-    } = options;
+    const { host, port, retryAttempts = 9, retryDelay = 3000 } = options;
     const logger = new Logger('EventStoreModule');
     const connectionProvider = {
       provide: CONNECTION_NAME,
       useFactory: async (): Promise<any> =>
         await lastValueFrom(
           defer(async () => {
-            const client = new EventStoreDBClient({
-              endpoint:`${host}:${port}`,
-            }, {
-              insecure: true,
-            });
+            const client = new EventStoreDBClient(
+              {
+                endpoint: `${host}:${port}`,
+              },
+              {
+                insecure: true,
+              },
+            );
             await client.listProjections();
             return client;
           }).pipe(
@@ -57,8 +57,9 @@ export class EventStoreModule extends ConfigurableModuleClass {
         ),
     };
     return {
+      imports: [DiscoveryModule],
       module: EventStoreModule,
-      providers: [connectionProvider, EventStoreService],
+      providers: [connectionProvider, EventStoreService, SubscriptionInit],
       exports: [connectionProvider, EventStoreService],
     };
   }
