@@ -6,10 +6,12 @@ import { User } from 'libs/users/domain/user';
 import { UserEmail } from 'libs/users/domain/value-objects/user-email';
 import { UserId } from 'libs/users/domain/value-objects/user-id';
 import { UserName } from 'libs/users/domain/value-objects/user-name';
+import { UserWallet } from '../domain/value-objects/user-wallet';
 
 export type CreateUserCommand = {
   name: string;
   email: string;
+  wallet: string;
 };
 
 export type CreateUserResponse = {
@@ -26,6 +28,7 @@ export const CreateUserCommandHandler =
     const data = {
       name: new UserName(command.name),
       email: new UserEmail(command.email),
+      wallet: new UserWallet(command.wallet),
     };
     const user = User.create(new UserId(id), data);
     await eventStore.appendEventsFrom(user);

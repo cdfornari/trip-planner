@@ -11,4 +11,7 @@ export class RegisterDto {
   @IsString()
   @IsStrongPassword()
   password: string;
+
+  @IsString()
+  wallet: string;
 }
