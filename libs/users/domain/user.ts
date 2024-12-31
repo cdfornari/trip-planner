@@ -5,6 +5,7 @@ import { UserEmail } from './value-objects/user-email';
 import { InvalidUserException } from './exceptions/invalid-user.exception';
 import { UserCreated } from './events/user-created.event';
 import { DomainEvent } from 'libs/core/domain/events';
+import { UserWallet } from './value-objects/user-wallet';
 
 export class User extends AggregateRoot<UserId> {
   private constructor(protected readonly _id: UserId) {
@@ -12,13 +13,14 @@ export class User extends AggregateRoot<UserId> {
   }
 
   protected validateState(): void {
-    if (!this.id || !this._email || !this._name) {
+    if (!this.id || !this._email || !this._name || !this._wallet) {
       throw new InvalidUserException();
     }
   }
 
   private _name: UserName;
   private _email: UserEmail;
+  private _wallet: UserWallet;
 
   get id(): UserId {
     return this._id;
@@ -41,14 +43,17 @@ export class User extends AggregateRoot<UserId> {
     data: {
       name: UserName;
       email: UserEmail;
+      wallet: UserWallet;
     },
   ): User {
     const user = new User(id);
-    user.apply(UserCreated.createEvent(user, data.name, data.email));
+    user.apply(
+      UserCreated.createEvent(user, data.name, data.email, data.wallet),
+    );
     return user;
   }
 
-  static loadFromHistroy(id: UserId, events: DomainEvent[]): User {
+  static loadFromHistory(id: UserId, events: DomainEvent[]): User {
     const user = new User(id);
     user.hydrate(events);
     return user;
@@ -57,5 +62,6 @@ export class User extends AggregateRoot<UserId> {
   [`on${UserCreated.name}`](context: UserCreated): void {
     this._name = new UserName(context.name);
     this._email = new UserEmail(context.email);
+    this._wallet = new UserWallet(context.wallet);
   }
 }

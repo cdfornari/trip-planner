@@ -91,7 +91,8 @@
     "moduleNameMapper": {
       "^@app/core(|/.*)$": "<rootDir>/libs/core/src/$1",
       "^@app/users(|/.*)$": "<rootDir>/libs/users/src/$1",
-      "^@app/trips(|/.*)$": "<rootDir>/libs/trip-plans/src/$1"
+      "^@app/trips(|/.*)$": "<rootDir>/libs/trip-plans/src/$1",
+      "^@app/payments(|/.*)$": "<rootDir>/libs/payments/src/$1"
     }
   }
 }

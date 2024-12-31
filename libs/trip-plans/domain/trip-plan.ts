@@ -43,12 +43,14 @@ import { ActivityDescription } from './value-objects/activity-description';
 import { ActivityBookingDate } from './value-objects/activity-booking-date';
 import { ActivityDuration } from './value-objects/activity-duration';
 import { ActivitiesBookingFailed } from './events/activities-booking-failed.event';
+import { UserId } from 'libs/users/domain/value-objects/user-id';
 
 export class TripPlan extends AggregateRoot<TripPlanId> {
   private constructor(protected readonly _id: TripPlanId) {
     super(_id);
   }
 
+  protected _requestedBy: UserId;
   protected _originCity: OriginCity;
   protected _destinationCity: DestinationCity;
   protected _budget: TripBudget;
@@ -66,6 +68,10 @@ export class TripPlan extends AggregateRoot<TripPlanId> {
 
   get uid(): string {
     return this._id.value;
+  }
+
+  get requestedBy(): UserId {
+    return this._requestedBy;
   }
 
   get originCity(): OriginCity {
@@ -218,12 +224,14 @@ export class TripPlan extends AggregateRoot<TripPlanId> {
   }
 
   complete(): void {
+    if (!this.status.isPlanning) throw new InvalidTripPlanException();
     this.apply(TripPlanCompleted.createEvent(this));
   }
 
   static request(
     id: TripPlanId,
     data: {
+      requestedBy: UserId;
       originCity: OriginCity;
       destinationCity: DestinationCity;
       tripBudget: TripBudget;
@@ -236,13 +244,14 @@ export class TripPlan extends AggregateRoot<TripPlanId> {
     return tripPlan;
   }
 
-  static loadFromHistroy(id: TripPlanId, events: DomainEvent[]): TripPlan {
+  static loadFromHistory(id: TripPlanId, events: DomainEvent[]): TripPlan {
     const tripPlan = new TripPlan(id);
     tripPlan.hydrate(events);
     return tripPlan;
   }
 
   [`on${TripPlanRequested.name}`](context: TripPlanRequested): void {
+    this._requestedBy = new UserId(context.requestedBy);
     this._originCity = new OriginCity(context.originCity);
     this._destinationCity = new DestinationCity(context.destinationCity);
     this._budget = new TripBudget(

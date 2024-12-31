@@ -5,11 +5,13 @@ import { DestinationCity } from '../value-objects/destination-city';
 import { TripBudget } from '../value-objects/trip-budget';
 import { TripDateRange } from '../value-objects/trip-date-range';
 import { Traveler } from '../entities/traveler';
+import { UserId } from 'libs/users/domain/value-objects/user-id';
 
 export type TripPlanRequestedEvent = DomainEvent<TripPlanRequested>;
 
 export class TripPlanRequested {
   private constructor() {}
+  requestedBy: string;
   originCity: string;
   destinationCity: string;
   budget: {
@@ -28,6 +30,7 @@ export class TripPlanRequested {
   static createEvent(
     dispatcher: TripPlan,
     data: {
+      requestedBy: UserId;
       originCity: OriginCity;
       destinationCity: DestinationCity;
       tripBudget: TripBudget;
@@ -39,6 +42,7 @@ export class TripPlanRequested {
       dispatcher,
       name: TripPlanRequested.name,
       context: {
+        requestedBy: data.requestedBy.value,
         originCity: data.originCity.value,
         destinationCity: data.destinationCity.value,
         budget: {
