@@ -29,6 +29,12 @@
       ],
       "@app/users/*": [
         "libs/users/src/*"
+      ],
+      "@app/trip-plans": [
+        "libs/trip-plans/src"
+      ],
+      "@app/trip-plans/*": [
+        "libs/trip-plans/src/*"
       ]
     }
   }

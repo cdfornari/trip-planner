@@ -108,6 +108,15 @@
       "compilerOptions": {
         "tsConfigPath": "libs/users/tsconfig.lib.json"
       }
+    },
+    "trip-plans": {
+      "type": "library",
+      "root": "libs/trip-plans",
+      "entryFile": "index",
+      "sourceRoot": "libs/trip-plans/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/trip-plans/tsconfig.lib.json"
+      }
     }
   }
 }
