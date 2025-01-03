@@ -40,6 +40,8 @@ services:
     environment:
       - PORT=${API_GATEWAY_PORT}
       - NATS_SERVER=nats://nats-server:4222
+      - EVENT_STORE_HOST=eventstore
+      - EVENT_STORE_PORT=2113
       - DEFAULT_LANGUAGE=${DEFAULT_LANGUAGE}
       - TRANSLATION_PATH=../../../resources/i18n
     depends_on:
@@ -131,8 +133,8 @@ services:
       target: build
     command: npm run start:dev flight-booking
     environment:
-      - PORT=${API_GATEWAY_PORT}
-      - NATS_SERVERS=nats://nats-server:4222
+      - EVENT_STORE_HOST=eventstore
+      - EVENT_STORE_PORT=2113
     depends_on:
       - eventstore
     volumes:

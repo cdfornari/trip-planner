@@ -12,6 +12,7 @@ import {
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ApiGatewayController } from './api-gateway.controller';
 import { Environment } from 'libs/core/utils/environment';
+import { EventStoreModule } from 'libs/core/infrastructure/event-store/event-store.module';
 
 @Module({
   imports: [
@@ -27,6 +28,11 @@ import { Environment } from 'libs/core/utils/environment';
         },
       },
     ]),
+    EventStoreModule.forRoot({
+      host: Environment.eventStore.host,
+      port: Environment.eventStore.port,
+      isGlobal: true,
+    }),
     I18nModule.forRootAsync({
       useFactory: (
         configService: ConfigService<Record<string, unknown>, true>,

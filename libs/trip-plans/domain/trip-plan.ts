@@ -266,6 +266,8 @@ export class TripPlan extends AggregateRoot<TripPlanId> {
         new TravelerName(traveler.name),
       ),
     );
+    this._planeTickets = [];
+    this._activities = [];
   }
 
   [`on${FlightsBooked.name}`](context: FlightsBooked): void {

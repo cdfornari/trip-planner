@@ -1,5 +1,7 @@
+import { Transform, Type } from 'class-transformer';
 import {
-  IsDateString,
+  IsArray,
+  IsDate,
   IsIn,
   IsNotEmpty,
   IsNumber,
@@ -24,10 +26,12 @@ class Traveler {
 }
 
 class TripDateRange {
-  @IsDateString()
+  @IsDate()
+  @Transform(({ value }) => new Date(value))
   start: Date;
 
-  @IsDateString()
+  @IsDate()
+  @Transform(({ value }) => new Date(value))
   end: Date;
 }
 
@@ -41,11 +45,15 @@ export class RequestTripPlanDto {
   destinationCity: string;
 
   @ValidateNested()
+  @Type(() => Budget)
   budget: Budget;
 
   @ValidateNested({ each: true })
+  @IsArray()
+  @Type(() => Traveler)
   travelers: Traveler[];
 
   @ValidateNested()
+  @Type(() => TripDateRange)
   date: TripDateRange;
 }

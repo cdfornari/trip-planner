@@ -10,6 +10,8 @@ import { EventStoreService } from 'libs/core/infrastructure/event-store/event-st
 import { UuidGenerator } from 'libs/core/infrastructure/uuid/uuid-generator';
 import { RegisterDto } from 'libs/users/infrastructure/register.dto';
 import { LoginDto } from 'libs/users/infrastructure/login.dto';
+import { ExceptionsHandler } from '@nestjs/core/exceptions/exceptions-handler';
+import { ExceptionDecorator } from 'libs/core/application/decorators/exception-decorator';
 
 type JwtPayload = {
   id: string;
@@ -104,9 +106,14 @@ export class AuthService implements OnApplicationBootstrap {
         message: 'USER_ALREADY_EXISTS',
         status: 400,
       });
-    const commandHandler = CreateUserCommandHandler(
-      this.eventStore,
-      new UuidGenerator(),
+    const commandHandler = ExceptionDecorator(
+      CreateUserCommandHandler(this.eventStore, new UuidGenerator()),
+      (error) => {
+        throw new RpcException({
+          message: error.constructor?.name ?? error.message,
+          status: 400,
+        });
+      },
     );
     const result = await commandHandler(dto);
     const { id } = result.unwrap();

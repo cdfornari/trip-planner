@@ -4,7 +4,7 @@ import { InvalidUserWalletException } from '../exceptions/invalid-user-wallet.ex
 export class UserWallet implements ValueObject<UserWallet> {
   constructor(private readonly _value: string) {
     if (
-      !new RegExp('/^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/g').test(_value) &&
+      !new RegExp(/^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$/g).test(_value) &&
       !new RegExp(/^0x[a-fA-F0-9]{40}$/g).test(_value)
     )
       throw new InvalidUserWalletException();

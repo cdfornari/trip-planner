@@ -4,6 +4,7 @@ import { SAGA_KEY } from './saga-step.decorator';
 import { SUBSCRIPTION_KEY } from './subscribe-to-group.decorator';
 import { EventStoreService } from './event-store.service';
 import { PROJECTOR_KEY } from './projector.decorator';
+import { DomainEvent } from 'libs/core/domain/events';
 
 @Injectable()
 export class SubscriptionInit implements OnApplicationBootstrap {
@@ -32,7 +33,14 @@ export class SubscriptionInit implements OnApplicationBootstrap {
         const listener =
           this.reflector.get(SUBSCRIPTION_KEY, instance[methodKey]) ?? false;
         if (listener)
-          this.eventStore.subscribeToGroup(listener, instance[methodKey]);
+          this.eventStore.subscribeToGroup(
+            listener,
+            (
+              event: DomainEvent,
+              ack: () => Promise<void>,
+              nack: (error: any) => Promise<void>,
+            ) => instance[methodKey](event, ack, nack),
+          );
       });
     });
   }

@@ -41,7 +41,7 @@ export class EventStoreService implements EventStore {
     const expectedRevision =
       dispatcher.version - events.length === 0
         ? NO_STREAM
-        : BigInt(dispatcher.version - events.length);
+        : BigInt(dispatcher.version - events.length - 1);
     await this.client.appendToStream(dispatcher.uid, serializedEvents, {
       expectedRevision,
     });
@@ -52,15 +52,12 @@ export class EventStoreService implements EventStore {
     const serializedEvents = this.client.readStream(stream);
     const events: DomainEvent[] = [];
     for await (const resolvedEvent of serializedEvents) {
-      const context = JSON.parse(
-        (resolvedEvent.event.data as JSONType).toString(),
-      );
+      const context = resolvedEvent.event.data as Record<any, any>;
       events.push({
         dispatcherId: stream,
         name: resolvedEvent.event.type,
         context,
-        timestamp: JSON.parse(resolvedEvent.event.metadata.toString())
-          .timestamp,
+        timestamp: (resolvedEvent.event.metadata as Record<any, any>).timestamp,
         position: Number(resolvedEvent.event.revision),
       });
     }
@@ -71,13 +68,17 @@ export class EventStoreService implements EventStore {
     eventType: string,
     groupName: string,
   ): Promise<void> {
-    await this.client.createPersistentSubscriptionToAll(
-      groupName,
-      persistentSubscriptionToAllSettingsFromDefaults(),
-      {
-        filter: eventTypeFilter({ prefixes: [eventType] }),
-      },
-    );
+    try {
+      await this.client.createPersistentSubscriptionToAll(
+        groupName,
+        persistentSubscriptionToAllSettingsFromDefaults(),
+        {
+          filter: eventTypeFilter({ prefixes: [eventType] }),
+        },
+      );
+    } catch (error) {
+      //console.log(error);
+    }
   }
 
   async subscribeToGroup(
@@ -91,9 +92,7 @@ export class EventStoreService implements EventStore {
     const subscription =
       this.client.subscribeToPersistentSubscriptionToAll(groupName);
     for await (const resolvedEvent of subscription) {
-      const context = JSON.parse(
-        (resolvedEvent.event.data as JSONType).toString(),
-      );
+      const context = resolvedEvent.event.data as Record<any, any>;
       try {
         console.log(
           `handling event ${resolvedEvent.event?.type} with retryCount ${resolvedEvent.retryCount}`,
@@ -103,7 +102,7 @@ export class EventStoreService implements EventStore {
             dispatcherId: resolvedEvent.event.streamId,
             name: resolvedEvent.event.type,
             context,
-            timestamp: JSON.parse(resolvedEvent.event.metadata.toString())
+            timestamp: (resolvedEvent.event.metadata as Record<any, any>)
               .timestamp,
             position: Number(resolvedEvent.event.revision),
           },
@@ -116,7 +115,8 @@ export class EventStoreService implements EventStore {
         );
         //await subscription.ack(resolvedEvent);
       } catch (error) {
-        await subscription.nack(RETRY, error.toString(), resolvedEvent);
+        console.log(error);
+        //await subscription.nack(RETRY, error.toString(), resolvedEvent);
       }
     }
   }
