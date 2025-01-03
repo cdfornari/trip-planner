@@ -1,10 +1,17 @@
 import { Module } from '@nestjs/common';
-import { HotelBookingController } from './hotel-booking.controller';
-import { HotelBookingService } from './hotel-booking.service';
+import { HotelBookingListener } from './hotel-booking.listener';
+import { EventStoreModule } from 'libs/core/infrastructure/event-store/event-store.module';
+import { Environment } from 'libs/core/utils/environment';
 
 @Module({
-  imports: [],
-  controllers: [HotelBookingController],
-  providers: [HotelBookingService],
+  imports: [
+    EventStoreModule.forRoot({
+      host: Environment.eventStore.host,
+      port: Environment.eventStore.port,
+      isGlobal: true,
+    }),
+  ],
+  controllers: [],
+  providers: [HotelBookingListener],
 })
 export class HotelBookingModule {}

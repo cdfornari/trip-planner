@@ -150,8 +150,8 @@ services:
       target: build
     command: npm run start:dev hotel-booking
     environment:
-      - PORT=${API_GATEWAY_PORT}
-      - NATS_SERVERS=nats://nats-server:4222
+      - EVENT_STORE_HOST=eventstore
+      - EVENT_STORE_PORT=2113
     depends_on:
       - eventstore
     volumes:

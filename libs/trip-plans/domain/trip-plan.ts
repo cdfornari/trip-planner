@@ -130,6 +130,13 @@ export class TripPlan extends AggregateRoot<TripPlanId> {
     return this._budget.limit - this.totalCost;
   }
 
+  get durationDays(): number {
+    const diffTime = Math.abs(
+      this._date.end.getTime() - this._date.start.getTime(),
+    );
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  }
+
   protected validateState(): void {
     if (
       !this._id ||
