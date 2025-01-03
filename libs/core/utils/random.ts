@@ -6,3 +6,9 @@ export const selectRandom = <T>(items: T[]): T =>
 
 export const probability = (percentage: number): boolean =>
   Math.random() < percentage / 100;
+
+export const generateRandomDate = (start: Date, end: Date): Date => {
+  return new Date(
+    start.getTime() + Math.random() * (end.getTime() - start.getTime()),
+  );
+};

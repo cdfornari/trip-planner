@@ -45,6 +45,7 @@ import { ActivityDuration } from './value-objects/activity-duration';
 import { ActivitiesBookingFailed } from './events/activities-booking-failed.event';
 import { UserId } from 'libs/users/domain/value-objects/user-id';
 import { VehicleRentalSkipped } from './events/vehicle-rental-skipped.event';
+import { ActivitiesBookingSkipped } from './events/activities-booking-skipped.event';
 
 export class TripPlan extends AggregateRoot<TripPlanId> {
   private constructor(protected readonly _id: TripPlanId) {
@@ -231,6 +232,10 @@ export class TripPlan extends AggregateRoot<TripPlanId> {
     this.apply(ActivityBooked.createEvent(this, activity));
   }
 
+  skipBookingActivities(): void {
+    this.apply(ActivitiesBookingSkipped.createEvent(this));
+  }
+
   failBookingActivities(): void {
     this.apply(ActivitiesBookingFailed.createEvent(this));
   }
@@ -346,6 +351,12 @@ export class TripPlan extends AggregateRoot<TripPlanId> {
         new PriceDetail(context.price.amount, context.price.currency),
       ),
     );
+  }
+
+  [`on${ActivitiesBookingSkipped.name}`](
+    context: ActivitiesBookingSkipped,
+  ): void {
+    this._activities = [];
   }
 
   [`on${ActivitiesBookingFailed.name}`](
