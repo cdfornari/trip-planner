@@ -44,6 +44,7 @@ import { ActivityBookingDate } from './value-objects/activity-booking-date';
 import { ActivityDuration } from './value-objects/activity-duration';
 import { ActivitiesBookingFailed } from './events/activities-booking-failed.event';
 import { UserId } from 'libs/users/domain/value-objects/user-id';
+import { VehicleRentalSkipped } from './events/vehicle-rental-skipped.event';
 
 export class TripPlan extends AggregateRoot<TripPlanId> {
   private constructor(protected readonly _id: TripPlanId) {
@@ -175,7 +176,7 @@ export class TripPlan extends AggregateRoot<TripPlanId> {
       if (
         this._planeTickets.length === 0 ||
         !this._hotelBooking ||
-        !this._vehicleRental ||
+        //!this._vehicleRental
         this._vehicleRental.vehicleCapacity.value < this._travelers.length
       ) {
         throw new InvalidTripPlanException();
@@ -216,6 +217,10 @@ export class TripPlan extends AggregateRoot<TripPlanId> {
 
   bookVehicleRental(rental: VehicleRental): void {
     this.apply(VehicleRentalBooked.createEvent(this, rental));
+  }
+
+  skipVehicleRental(): void {
+    this.apply(VehicleRentalSkipped.createEvent(this));
   }
 
   failBookingVehicleRental(): void {
@@ -321,6 +326,10 @@ export class TripPlan extends AggregateRoot<TripPlanId> {
       new VehicleYear(context.vehicleYear),
       new PriceDetail(context.price.amount, context.price.currency),
     );
+  }
+
+  [`on${VehicleRentalSkipped.name}`](context: VehicleRentalSkipped): void {
+    this._vehicleRental = null;
   }
 
   [`on${VehicleRentalFailed.name}`](context: VehicleRentalFailed): void {
