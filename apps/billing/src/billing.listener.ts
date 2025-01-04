@@ -15,7 +15,6 @@ import {
 } from 'libs/trip-plans/domain/events/activities-booking-skipped.event';
 
 const SUBSCRIPTION_GROUP = 'book-activity-listener';
-const SUBSCRIPTION_GROUP_ALT = 'book-activity-listener-alt';
 
 @SagaStep
 @Injectable()
@@ -23,35 +22,17 @@ export class BillingListener implements OnApplicationBootstrap {
   constructor(private readonly eventStore: EventStoreService) {}
 
   async onApplicationBootstrap() {
-    await this.eventStore.createSubscriptionGroup(
-      ActivitiesBookingFinished.name,
-      SUBSCRIPTION_GROUP,
-    );
-    await this.eventStore.createSubscriptionGroup(
-      ActivitiesBookingSkipped.name,
-      SUBSCRIPTION_GROUP_ALT,
-    );
+    try {
+      await this.eventStore.createSubscriptionGroup(
+        [ActivitiesBookingFinished.name, ActivitiesBookingSkipped.name],
+        SUBSCRIPTION_GROUP,
+      );
+    } catch {}
   }
 
   @SubscribeToGroup(SUBSCRIPTION_GROUP)
   async onEvent(
-    event: ActivitiesBookingFinishedEvent,
-    ack: () => Promise<void>,
-    nack: (error: any) => Promise<void>,
-  ) {
-    const commandHandler = PayTripPlanCommandHandler(
-      this.eventStore,
-      CryptoPaymentGatewayServiceSimulation(),
-      new UuidGenerator(),
-    );
-    const result = await commandHandler({ tripPlanId: event.dispatcherId });
-    console.log(result.unwrap());
-    await ack();
-  }
-
-  @SubscribeToGroup(SUBSCRIPTION_GROUP_ALT)
-  async onEventAlt(
-    event: ActivitiesBookingSkippedEvent,
+    event: ActivitiesBookingFinishedEvent | ActivitiesBookingSkippedEvent,
     ack: () => Promise<void>,
     nack: (error: any) => Promise<void>,
   ) {

@@ -19,8 +19,7 @@ import {
 } from 'libs/trip-plans/domain/events/vehicle-rental-skipped.event';
 import { FindActivitiesServiceSimulation } from 'libs/trip-plans/infrastructure/find-activities.service';
 
-const SUBSCRIPTION_GROUP = 'book-activity-listener';
-const SUBSCRIPTION_GROUP_ALT = 'book-activity-listener-alt';
+const SUBSCRIPTION_GROUP = 'activity-booking-listener';
 const SUBSCRIPTION_GROUP_COMPENSATION = 'book-activity-compensation';
 
 @SagaStep
@@ -29,38 +28,21 @@ export class ActivityBookingListener implements OnApplicationBootstrap {
   constructor(private readonly eventStore: EventStoreService) {}
 
   async onApplicationBootstrap() {
-    await this.eventStore.createSubscriptionGroup(
-      VehicleRentalBooked.name,
-      SUBSCRIPTION_GROUP,
-    );
-    await this.eventStore.createSubscriptionGroup(
-      VehicleRentalSkipped.name,
-      SUBSCRIPTION_GROUP_ALT,
-    );
-    await this.eventStore.createSubscriptionGroup(
-      TripPlanFailed.name,
-      SUBSCRIPTION_GROUP_COMPENSATION,
-    );
+    try {
+      await this.eventStore.createSubscriptionGroup(
+        [VehicleRentalBooked.name, VehicleRentalSkipped.name],
+        SUBSCRIPTION_GROUP,
+      );
+      await this.eventStore.createSubscriptionGroup(
+        TripPlanFailed.name,
+        SUBSCRIPTION_GROUP_COMPENSATION,
+      );
+    } catch {}
   }
 
   @SubscribeToGroup(SUBSCRIPTION_GROUP)
   async onEvent(
-    event: VehicleRentalBookedEvent,
-    ack: () => Promise<void>,
-    nack: (error: any) => Promise<void>,
-  ) {
-    const commandHandler = BookActivitiesCommandHandler(
-      this.eventStore,
-      FindActivitiesServiceSimulation(new UuidGenerator()),
-    );
-    const result = await commandHandler({ tripPlanId: event.dispatcherId });
-    console.log(result.unwrap());
-    await ack();
-  }
-
-  @SubscribeToGroup(SUBSCRIPTION_GROUP_ALT)
-  async onEventAlt(
-    event: VehicleRentalSkippedEvent,
+    event: VehicleRentalBookedEvent | VehicleRentalSkippedEvent,
     ack: () => Promise<void>,
     nack: (error: any) => Promise<void>,
   ) {

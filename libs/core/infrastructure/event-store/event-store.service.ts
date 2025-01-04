@@ -65,7 +65,7 @@ export class EventStoreService implements EventStore {
   }
 
   async createSubscriptionGroup(
-    eventType: string,
+    eventType: string | string[],
     groupName: string,
   ): Promise<void> {
     try {
@@ -73,7 +73,9 @@ export class EventStoreService implements EventStore {
         groupName,
         persistentSubscriptionToAllSettingsFromDefaults(),
         {
-          filter: eventTypeFilter({ prefixes: [eventType] }),
+          filter: eventTypeFilter({
+            prefixes: Array.isArray(eventType) ? eventType : [eventType],
+          }),
         },
       );
     } catch (error) {
