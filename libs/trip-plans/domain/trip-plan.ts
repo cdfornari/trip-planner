@@ -46,6 +46,7 @@ import { ActivitiesBookingFailed } from './events/activities-booking-failed.even
 import { UserId } from 'libs/users/domain/value-objects/user-id';
 import { VehicleRentalSkipped } from './events/vehicle-rental-skipped.event';
 import { ActivitiesBookingSkipped } from './events/activities-booking-skipped.event';
+import { ActivitiesBookingFinished } from './events/activities-booking-finished.event';
 
 export class TripPlan extends AggregateRoot<TripPlanId> {
   private constructor(protected readonly _id: TripPlanId) {
@@ -116,7 +117,7 @@ export class TripPlan extends AggregateRoot<TripPlanId> {
     return this._vehicleRental;
   }
 
-  protected get totalCost(): number {
+  get totalCost(): number {
     return (
       this._planeTickets.reduce((acc, ticket) => acc + ticket.price.value, 0) +
       this._activities.reduce(
@@ -232,6 +233,10 @@ export class TripPlan extends AggregateRoot<TripPlanId> {
     this.apply(ActivityBooked.createEvent(this, activity));
   }
 
+  finishBookingActivities(): void {
+    this.apply(ActivitiesBookingFinished.createEvent(this));
+  }
+
   skipBookingActivities(): void {
     this.apply(ActivitiesBookingSkipped.createEvent(this));
   }
@@ -243,6 +248,11 @@ export class TripPlan extends AggregateRoot<TripPlanId> {
   complete(): void {
     if (!this.status.isPlanning) throw new InvalidTripPlanException();
     this.apply(TripPlanCompleted.createEvent(this));
+  }
+
+  fail(): void {
+    if (!this.status.isPlanning) throw new InvalidTripPlanException();
+    this.apply(TripPlanFailed.createEvent(this));
   }
 
   static request(
@@ -353,6 +363,10 @@ export class TripPlan extends AggregateRoot<TripPlanId> {
     );
   }
 
+  [`on${ActivitiesBookingFinished.name}`](
+    context: ActivitiesBookingSkipped,
+  ): void {}
+
   [`on${ActivitiesBookingSkipped.name}`](
     context: ActivitiesBookingSkipped,
   ): void {
@@ -370,6 +384,10 @@ export class TripPlan extends AggregateRoot<TripPlanId> {
   }
 
   [`on${TripPlanFailed.name}`](context: TripPlanFailed): void {
+    this._planeTickets = [];
+    this._activities = [];
+    this._hotelBooking = null;
+    this._vehicleRental = null;
     this._status = TripPlanStatus.PlanFailed();
   }
 }

@@ -38,6 +38,10 @@ export class User extends AggregateRoot<UserId> {
     return this._email;
   }
 
+  get wallet(): UserWallet {
+    return this._wallet;
+  }
+
   static create(
     id: UserId,
     data: {

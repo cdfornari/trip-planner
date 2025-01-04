@@ -30,7 +30,10 @@ export const BookActivitiesCommandHandler =
     try {
       const activities = await findActivitiesService(tripPlan);
       if (activities.length === 0) tripPlan.skipBookingActivities();
-      else activities.forEach((activity) => tripPlan.bookActivity(activity));
+      else {
+        activities.forEach((activity) => tripPlan.bookActivity(activity));
+        tripPlan.finishBookingActivities();
+      }
       await eventStore.appendEventsFrom(tripPlan);
       return Result.success({
         id: tripPlan.id.value,
