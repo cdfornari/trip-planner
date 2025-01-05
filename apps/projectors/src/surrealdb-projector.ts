@@ -47,7 +47,7 @@ import {
   TripPlanFailedEvent,
 } from 'libs/trip-plans/domain/events/trip-plan-failed.event';
 
-const SUBSCRIPTION_GROUP = 'surrealdb-trip-plan-projector';
+const SUBSCRIPTION_GROUP = 'surreal.db-projector';
 
 @Projector
 @Injectable()
@@ -79,7 +79,7 @@ export class SureealDbProjector implements OnApplicationBootstrap {
       await ack();
     } catch (error) {
       console.log(error);
-      await nack(error);
+      //await nack(error);
     }
   }
 
