@@ -101,7 +101,7 @@ export class SureealDbProjector implements OnApplicationBootstrap {
 
   async [`on${FlightsBookingFailed.name}`](event: FlightsBookingFailedEvent) {
     this.surreal.merge(new RecordId('trip', event.dispatcherId), {
-      planeTickets: [],
+      planeTickets: undefined,
     });
   }
 
@@ -142,7 +142,7 @@ export class SureealDbProjector implements OnApplicationBootstrap {
     event: ActivitiesBookingFailedEvent,
   ) {
     this.surreal.merge(new RecordId('trip', event.dispatcherId), {
-      activities: [],
+      activities: undefined,
     });
   }
 

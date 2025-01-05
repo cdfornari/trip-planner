@@ -147,7 +147,7 @@ export class TripPlan {
   @Field(() => TripBudget)
   budget: TripBudget;
 
-  @Field(() => [PlaneTicket])
+  @Field(() => [PlaneTicket], { defaultValue: [] })
   planeTickets: PlaneTicket[];
 
   @Field(() => [Traveler])
@@ -159,6 +159,6 @@ export class TripPlan {
   @Field(() => VehicleRental, { nullable: true })
   vehicleRental?: VehicleRental;
 
-  @Field(() => [Activity])
+  @Field(() => [Activity], { defaultValue: [] })
   activities: Activity[];
 }
