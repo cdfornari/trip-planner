@@ -8,6 +8,12 @@ const envVariables = {
   jwtSecret: process.env.JWT_SECRET,
   defaultLanguage: process.env.DEFAULT_LANGUAGE,
   translationsPath: process.env.TRANSLATION_PATH,
+  surrealDbHost: process.env.SURREAL_HOST,
+  surrealDbPort: process.env.SURREAL_PORT,
+  surrealPassword: process.env.DB_PASSWORD,
+  surrealUser: process.env.DB_USER,
+  surrealDatabaseName: process.env.SURREAL_DATABASE,
+  surrealNamespace: process.env.SURREAL_NAMESPACE,
 };
 
 export class Environment {
@@ -40,5 +46,16 @@ export class Environment {
 
   static get translationsPath() {
     return envVariables.translationsPath || './resources/i18n/';
+  }
+
+  static get surrealDb() {
+    return {
+      host: envVariables.surrealDbHost || 'localhost',
+      port: +envVariables.surrealDbPort || 5432,
+      password: envVariables.surrealPassword || '',
+      user: envVariables.surrealUser || '',
+      database: envVariables.surrealDatabaseName || '',
+      namespace: envVariables.surrealNamespace || '',
+    };
   }
 }

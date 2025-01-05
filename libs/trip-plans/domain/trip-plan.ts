@@ -47,6 +47,7 @@ import { UserId } from 'libs/users/domain/value-objects/user-id';
 import { VehicleRentalSkipped } from './events/vehicle-rental-skipped.event';
 import { ActivitiesBookingSkipped } from './events/activities-booking-skipped.event';
 import { ActivitiesBookingFinished } from './events/activities-booking-finished.event';
+import { PaymentFailed } from './events/payment-failed.event';
 
 export class TripPlan extends AggregateRoot<TripPlanId> {
   private constructor(protected readonly _id: TripPlanId) {
@@ -174,12 +175,17 @@ export class TripPlan extends AggregateRoot<TripPlanId> {
         throw new InvalidTripPlanException();
       }
     }
+    if (
+      this._vehicleRental &&
+      this._vehicleRental.vehicleCapacity.value < this._travelers.length
+    ) {
+      throw new InvalidTripPlanException();
+    }
     if (this.status.isPlanCompleted) {
       if (
         this._planeTickets.length === 0 ||
-        !this._hotelBooking ||
-        //!this._vehicleRental
-        this._vehicleRental.vehicleCapacity.value < this._travelers.length
+        !this._hotelBooking
+        //|| !this._vehicleRental
       ) {
         throw new InvalidTripPlanException();
       }
@@ -255,6 +261,10 @@ export class TripPlan extends AggregateRoot<TripPlanId> {
     this.apply(TripPlanFailed.createEvent(this));
   }
 
+  failPayment(): void {
+    this.apply(PaymentFailed.createEvent(this));
+  }
+
   static request(
     id: TripPlanId,
     data: {
@@ -283,10 +293,13 @@ export class TripPlan extends AggregateRoot<TripPlanId> {
     this._destinationCity = new DestinationCity(context.destinationCity);
     this._budget = new TripBudget(
       context.budget.limit,
-      context.budget.currency,
+      context.budget.currency === '$' && 'USD',
     );
     this._status = TripPlanStatus.PlanRequested();
-    this._date = new TripDateRange(context.date.start, context.date.end);
+    this._date = new TripDateRange(
+      new Date(context.date.start),
+      new Date(context.date.end),
+    );
     this._travelers = context.travelers.map((traveler) =>
       Traveler.create(
         new TravelerId(traveler.id),
@@ -304,7 +317,7 @@ export class TripPlan extends AggregateRoot<TripPlanId> {
         new PlaneTicketId(ticket.id),
         new PlaneTicketSeat(Number(row), seat),
         new TravelerId(ticket.passengerId),
-        new PriceDetail(ticket.price.amount, ticket.price.currency),
+        new PriceDetail(ticket.price.amount, ticket.price.currency === '$' && 'USD'),
       );
     });
     this._status = TripPlanStatus.Planning();
@@ -323,7 +336,7 @@ export class TripPlan extends AggregateRoot<TripPlanId> {
       new HotelStars(context.hotelStars),
       new HotelAddress(context.hotelAddress),
       new HotelBookingRoom(Number(floor), Number(room)),
-      new PriceDetail(context.price.amount, context.price.currency),
+      new PriceDetail(context.price.amount, context.price.currency === '$' && 'USD'),
     );
   }
 
@@ -339,7 +352,7 @@ export class TripPlan extends AggregateRoot<TripPlanId> {
       new VehicleBrand(context.vehicleBrand),
       new VehicleCapacity(context.vehicleCapacity),
       new VehicleYear(context.vehicleYear),
-      new PriceDetail(context.price.amount, context.price.currency),
+      new PriceDetail(context.price.amount, context.price.currency === '$' && 'USD'),
     );
   }
 
@@ -358,7 +371,7 @@ export class TripPlan extends AggregateRoot<TripPlanId> {
         new ActivityDescription(context.description),
         new ActivityBookingDate(new Date(context.date)),
         new ActivityDuration(context.duration.hours, context.duration.minutes),
-        new PriceDetail(context.price.amount, context.price.currency),
+        new PriceDetail(context.price.amount, context.price.currency === '$' && 'USD'),
       ),
     );
   }
@@ -390,4 +403,6 @@ export class TripPlan extends AggregateRoot<TripPlanId> {
     this._vehicleRental = null;
     this._status = TripPlanStatus.PlanFailed();
   }
+
+  [`on${PaymentFailed.name}`](context: PaymentFailed): void {}
 }

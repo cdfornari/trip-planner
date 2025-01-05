@@ -15,8 +15,8 @@ import {
 } from 'libs/trip-plans/domain/events/vehicle-rental-failed.event';
 import { FindHotelServiceSimulation } from 'libs/trip-plans/infrastructure/find-hotel.service';
 
-const SUBSCRIPTION_GROUP = 'book-hotel-listener';
-const SUBSCRIPTION_GROUP_COMPENSATION = 'book-hotel-compensation';
+const SUBSCRIPTION_GROUP = 'hotel-booking-listener';
+const SUBSCRIPTION_GROUP_COMPENSATION = 'hotel-booking-compensation';
 
 @SagaStep
 @Injectable()

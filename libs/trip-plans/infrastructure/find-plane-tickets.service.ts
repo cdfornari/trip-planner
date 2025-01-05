@@ -26,7 +26,7 @@ export const FindPlaneTicketsServiceSimulation =
           selectRandom(['A', 'B', 'C', 'D', 'E', 'F']),
         ),
         new TravelerId(passenger),
-        new PriceDetail(ticketsPrice, '$'),
+        new PriceDetail(ticketsPrice, 'USD'),
       ),
     );
     return planeTickets;

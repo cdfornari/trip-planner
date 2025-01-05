@@ -115,6 +115,6 @@ export const FindVehicleRentalServiceSimulation =
       new VehicleBrand(vehicle.brand),
       new VehicleCapacity(vehicle.capacity),
       new VehicleYear(vehicle.year),
-      new PriceDetail(vehicle.pricePerDay * tripPlan.durationDays, '$'),
+      new PriceDetail(vehicle.pricePerDay * tripPlan.durationDays, 'USD'),
     );
   };

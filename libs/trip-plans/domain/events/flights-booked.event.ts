@@ -29,7 +29,7 @@ export class FlightsBooked {
           seat: ticket.seat.value,
           passengerId: ticket.passenger.value,
           price: {
-            currency: ticket.price.currency,
+            currency: ticket.price.currency.valueOf(),
             amount: ticket.price.value,
           },
         })),

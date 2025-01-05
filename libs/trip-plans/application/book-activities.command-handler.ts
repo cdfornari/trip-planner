@@ -38,7 +38,8 @@ export const BookActivitiesCommandHandler =
       return Result.success({
         id: tripPlan.id.value,
       });
-    } catch {
+    } catch(error) {
+      console.log(error);
       tripPlan.failBookingActivities();
       await eventStore.appendEventsFrom(tripPlan);
       return Result.success({

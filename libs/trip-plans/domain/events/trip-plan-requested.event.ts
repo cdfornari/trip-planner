@@ -46,7 +46,7 @@ export class TripPlanRequested {
         originCity: data.originCity.value,
         destinationCity: data.destinationCity.value,
         budget: {
-          currency: data.tripBudget.currency,
+          currency: data.tripBudget.currency.valueOf(),
           limit: data.tripBudget.limit,
         },
         date: {

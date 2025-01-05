@@ -1,7 +1,7 @@
 import { ConfigurableModuleBuilder } from '@nestjs/common';
 
 export type SurrealOptions = {
-  url: string;
+  host: string;
   port: number;
   username: string;
   password: string;

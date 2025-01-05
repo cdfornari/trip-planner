@@ -1,5 +1,5 @@
 import { DynamicModule, Global, Logger, Module } from '@nestjs/common';
-import { Surreal } from 'surrealdb';
+import { RecordId, Surreal } from 'surrealdb';
 import { ConfigurableModuleClass, OPTIONS_TYPE } from './surrealdb.definition';
 import { catchError, defer, lastValueFrom, retry, timer } from 'rxjs';
 import { CONNECTION_NAME } from './connection-name';
@@ -13,7 +13,7 @@ export class SurrealModule extends ConfigurableModuleClass {
 
   static forRoot(options: typeof OPTIONS_TYPE): DynamicModule {
     const {
-      url,
+      host,
       port,
       username,
       password,
@@ -22,7 +22,7 @@ export class SurrealModule extends ConfigurableModuleClass {
       retryAttempts = 9,
       retryDelay = 3000,
     } = options;
-    const connectionUrl = url + `:${port}`;
+    const connectionUrl = 'ws://' + host + `:${port}`;
     const logger = new Logger('SurrealDBModule');
     const connectionProvider = {
       provide: CONNECTION_NAME,
@@ -36,9 +36,7 @@ export class SurrealModule extends ConfigurableModuleClass {
               namespace,
               database,
             );
-            return {
-              ...surreal,
-            };
+            return surreal;
           }).pipe(
             retry({
               count: retryAttempts,

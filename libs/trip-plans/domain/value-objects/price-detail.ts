@@ -1,7 +1,7 @@
 import { ValueObject } from 'libs/core/domain/value-object';
 
 enum Currency {
-  USD = 'USD',
+  USD = '$',
 }
 
 export class PriceDetail implements ValueObject<PriceDetail> {
@@ -10,11 +10,8 @@ export class PriceDetail implements ValueObject<PriceDetail> {
     _currency: string,
   ) {
     if (_value <= 0) throw new Error('INVALID_PRICE_DETAIL');
-    try {
-      this._currency = Currency[_currency];
-    } catch (e) {
-      throw new Error('INVALID_PRICE_DETAIL');
-    }
+    this._currency = Currency[_currency];
+    if (!this._currency) throw new Error('INVALID_PRICE_DETAIL');
   }
 
   private readonly _currency: Currency;

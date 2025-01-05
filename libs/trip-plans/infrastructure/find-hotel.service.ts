@@ -54,6 +54,6 @@ export const FindHotelServiceSimulation =
         generateRandomNumber(1, 10),
         generateRandomNumber(1, 70),
       ),
-      new PriceDetail(price, '$'),
+      new PriceDetail(price, 'USD'),
     );
   };

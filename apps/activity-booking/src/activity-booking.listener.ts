@@ -5,10 +5,7 @@ import { SubscribeToGroup } from 'libs/core/infrastructure/event-store/subscribe
 import { UuidGenerator } from 'libs/core/infrastructure/uuid/uuid-generator';
 import { BookActivitiesCommandHandler } from 'libs/trip-plans/application/book-activities.command-handler';
 import { FailBookingActivitiesCommandHandler } from 'libs/trip-plans/application/fail-booking-activities.command-handler';
-import {
-  TripPlanFailed,
-  TripPlanFailedEvent,
-} from 'libs/trip-plans/domain/events/trip-plan-failed.event';
+import { PaymentFailed, PaymentFailedEvent } from 'libs/trip-plans/domain/events/payment-failed.event';
 import {
   VehicleRentalBooked,
   VehicleRentalBookedEvent,
@@ -19,8 +16,8 @@ import {
 } from 'libs/trip-plans/domain/events/vehicle-rental-skipped.event';
 import { FindActivitiesServiceSimulation } from 'libs/trip-plans/infrastructure/find-activities.service';
 
-const SUBSCRIPTION_GROUP = 'activity-booking-listener';
-const SUBSCRIPTION_GROUP_COMPENSATION = 'book-activity-compensation';
+const SUBSCRIPTION_GROUP = 'activities-booking-listener';
+const SUBSCRIPTION_GROUP_COMPENSATION = 'activities-booking-compensation';
 
 @SagaStep
 @Injectable()
@@ -34,7 +31,7 @@ export class ActivityBookingListener implements OnApplicationBootstrap {
         SUBSCRIPTION_GROUP,
       );
       await this.eventStore.createSubscriptionGroup(
-        TripPlanFailed.name,
+        PaymentFailed.name,
         SUBSCRIPTION_GROUP_COMPENSATION,
       );
     } catch {}
@@ -57,7 +54,7 @@ export class ActivityBookingListener implements OnApplicationBootstrap {
 
   @SubscribeToGroup(SUBSCRIPTION_GROUP_COMPENSATION)
   async compensate(
-    event: TripPlanFailedEvent,
+    event: PaymentFailedEvent,
     ack: () => Promise<void>,
     nack: (error: any) => Promise<void>,
   ) {

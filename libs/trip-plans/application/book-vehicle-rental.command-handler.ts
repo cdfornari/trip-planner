@@ -34,7 +34,8 @@ export const BookVehicleRentalCommandHandler =
       return Result.success({
         id: tripPlan.id.value,
       });
-    } catch {
+    } catch(error) {
+      console.log(error);
       tripPlan.skipVehicleRental();
       await eventStore.appendEventsFrom(tripPlan);
       return Result.success({

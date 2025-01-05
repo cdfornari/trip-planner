@@ -30,7 +30,7 @@ export class HotelBooked {
         hotelAddress: booking.hotelAddress.value,
         bookedRoom: booking.bookedRoom.value,
         price: {
-          currency: booking.price.currency,
+          currency: booking.price.currency.valueOf(),
           amount: booking.price.value,
         },
       },

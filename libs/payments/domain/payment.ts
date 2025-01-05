@@ -53,6 +53,14 @@ export class Payment extends AggregateRoot<PaymentId> {
     return this._paymentMethod;
   }
 
+  get user(): UserId {
+    return this._user;
+  }
+
+  get tripPlan(): TripPlanId {
+    return this._tripPlan;
+  }
+
   static create(
     id: PaymentId,
     data: {
@@ -87,5 +95,7 @@ export class Payment extends AggregateRoot<PaymentId> {
     this._amount = new PaymentAmount(context.amount);
     this._date = new PaymentDate(context.date);
     this._paymentMethod = new PaymentMethod(context.paymentMethod);
+    this._user = new UserId(context.user);
+    this._tripPlan = new TripPlanId(context.tripPlan);
   }
 }

@@ -121,7 +121,7 @@ export const FindActivitiesServiceSimulation =
           activity.pricePerDay *
             tripPlan.durationDays *
             tripPlan.travelers.length,
-          '$',
+          'USD',
         ),
       ),
     );

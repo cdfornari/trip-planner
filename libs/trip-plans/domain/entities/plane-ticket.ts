@@ -19,15 +19,15 @@ export class PlaneTicket extends Entity<PlaneTicketId> {
   }
 
   get seat(): PlaneTicketSeat {
-    return this.seat;
+    return this._seat;
   }
 
   get passenger(): TravelerId {
-    return this.passenger;
+    return this._passenger;
   }
 
   get price(): PriceDetail {
-    return this.price;
+    return this._price;
   }
 
   static create(

@@ -35,7 +35,7 @@ export class ActivityBooked {
         },
         price: {
           amount: booking.price.value,
-          currency: booking.price.currency,
+          currency: booking.price.currency.valueOf(),
         },
       },
     });

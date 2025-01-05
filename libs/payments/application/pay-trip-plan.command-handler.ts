@@ -65,8 +65,9 @@ export const PayTripPlanCommandHandler =
       return Result.success({
         id: tripPlan.id.value,
       });
-    } catch {
-      tripPlan.fail();
+    } catch(error) {
+      console.log(error);
+      tripPlan.failPayment();
       await eventStore.appendEventsFrom(tripPlan);
       return Result.success({
         id: tripPlan.id.value,

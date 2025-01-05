@@ -32,7 +32,7 @@ export class VehicleRentalBooked {
         vehicleCapacity: vehicleRental.vehicleCapacity.value,
         vehicleYear: vehicleRental.vehicleYear.value,
         price: {
-          currency: vehicleRental.price.currency,
+          currency: vehicleRental.price.currency.valueOf(),
           amount: vehicleRental.price.value,
         },
       },

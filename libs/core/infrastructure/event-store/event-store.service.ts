@@ -5,8 +5,8 @@ import { InjectEventStore } from './inject-event-store.decorator';
 import {
   EventStoreDBClient,
   eventTypeFilter,
+  excludeSystemEvents,
   jsonEvent,
-  JSONType,
   NO_STREAM,
   persistentSubscriptionToAllSettingsFromDefaults,
   RETRY,
@@ -53,19 +53,21 @@ export class EventStoreService implements EventStore {
     const events: DomainEvent[] = [];
     for await (const resolvedEvent of serializedEvents) {
       const context = resolvedEvent.event.data as Record<any, any>;
-      events.push({
-        dispatcherId: stream,
-        name: resolvedEvent.event.type,
-        context,
-        timestamp: (resolvedEvent.event.metadata as Record<any, any>).timestamp,
-        position: Number(resolvedEvent.event.revision),
-      });
+      if (resolvedEvent.event.metadata)
+        events.push({
+          dispatcherId: stream,
+          name: resolvedEvent.event.type,
+          context,
+          timestamp: (resolvedEvent.event.metadata as Record<any, any>)
+            .timestamp,
+          position: Number(resolvedEvent.event.revision),
+        });
     }
     return events;
   }
 
   async createSubscriptionGroup(
-    eventType: string | string[],
+    eventType: 'ALL' | string | string[],
     groupName: string,
   ): Promise<void> {
     try {
@@ -73,9 +75,11 @@ export class EventStoreService implements EventStore {
         groupName,
         persistentSubscriptionToAllSettingsFromDefaults(),
         {
-          filter: eventTypeFilter({
-            prefixes: Array.isArray(eventType) ? eventType : [eventType],
-          }),
+          filter:
+            eventType !== 'ALL' &&
+            eventTypeFilter({
+              prefixes: Array.isArray(eventType) ? eventType : [eventType],
+            }),
         },
       );
     } catch (error) {
@@ -96,25 +100,27 @@ export class EventStoreService implements EventStore {
     for await (const resolvedEvent of subscription) {
       const context = resolvedEvent.event.data as Record<any, any>;
       try {
-        console.log(
-          `handling event ${resolvedEvent.event?.type} with retryCount ${resolvedEvent.retryCount}`,
-        );
-        await onEvent(
-          {
-            dispatcherId: resolvedEvent.event.streamId,
-            name: resolvedEvent.event.type,
-            context,
-            timestamp: (resolvedEvent.event.metadata as Record<any, any>)
-              .timestamp,
-            position: Number(resolvedEvent.event.revision),
-          },
-          async () => {
-            await subscription.ack(resolvedEvent);
-          },
-          async (error) => {
-            await subscription.nack(RETRY, error.toString(), resolvedEvent);
-          },
-        );
+        if (resolvedEvent.event.metadata) {
+          console.log(
+            `handling event ${resolvedEvent.event?.type} with retryCount ${resolvedEvent.retryCount}`,
+          );
+          await onEvent(
+            {
+              dispatcherId: resolvedEvent.event.streamId,
+              name: resolvedEvent.event.type,
+              context,
+              timestamp: (resolvedEvent.event.metadata as Record<any, any>)
+                .timestamp,
+              position: Number(resolvedEvent.event.revision),
+            },
+            async () => {
+              await subscription.ack(resolvedEvent);
+            },
+            async (error) => {
+              await subscription.nack(RETRY, error.toString(), resolvedEvent);
+            },
+          );
+        }
         //await subscription.ack(resolvedEvent);
       } catch (error) {
         console.log(error);

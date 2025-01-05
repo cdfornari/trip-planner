@@ -1,7 +1,7 @@
 import { ValueObject } from 'libs/core/domain/value-object';
 
 enum Currency {
-  USD = 'USD',
+  USD = '$',
 }
 
 export class TripBudget implements ValueObject<TripBudget> {
@@ -10,11 +10,8 @@ export class TripBudget implements ValueObject<TripBudget> {
     _currency: string,
   ) {
     if (_limit < 300) throw new Error('INVALID_TRIP_BUDGET');
-    try {
-      this._currency = Currency[_currency];
-    } catch (e) {
-      throw new Error('INVALID_TRIP_BUDGET');
-    }
+    this._currency = Currency[_currency];
+    if (!this._currency) throw new Error('INVALID_TRIP_BUDGET');
   }
 
   private readonly _currency: Currency;

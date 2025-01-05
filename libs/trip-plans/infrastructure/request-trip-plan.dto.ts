@@ -11,8 +11,8 @@ import {
 } from 'class-validator';
 
 class Budget {
-  @IsIn(['$'])
-  currency: string = '$';
+  @IsIn(['USD'])
+  currency: string = 'USD';
 
   @IsNumber()
   @Min(1)
