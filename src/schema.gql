@@ -1,0 +1,84 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type TripDate {
+  start: Date!
+  end: Date!
+}
+
+type TripBudget {
+  limit: Float!
+  currency: String!
+}
+
+type PriceDetail {
+  amount: Float!
+  currency: String!
+}
+
+type PlaneTicket {
+  id: ID!
+  passengerId: ID!
+  seat: String!
+  price: PriceDetail!
+}
+
+type Traveler {
+  id: String!
+  name: String!
+}
+
+type HotelBooking {
+  id: ID!
+  bookedRoom: String!
+  hotelAddress: String!
+  hotelName: String!
+  hotelStars: Int!
+  price: PriceDetail!
+}
+
+type VehicleRental {
+  id: ID!
+  vehiclePlate: String!
+  vehicleModel: String!
+  vehicleBrand: String!
+  vehicleCapacity: Int!
+  vehicleYear: Int!
+  price: PriceDetail!
+}
+
+type Duration {
+  hours: Int!
+  minutes: Int!
+}
+
+type Activity {
+  id: ID!
+  date: Date!
+  description: String!
+  duration: Duration!
+  price: PriceDetail!
+}
+
+type TripPlan {
+  id: ID!
+  originCity: String!
+  destinationCity: String!
+  status: String!
+  requestedBy: ID!
+  date: TripDate!
+  budget: TripBudget!
+  planeTickets: [PlaneTicket!]!
+  travelers: [Traveler!]!
+  hotelBooking: HotelBooking
+  vehicleRental: VehicleRental
+  activities: [Activity!]!
+}
+
+"""Date custom scalar type"""
+scalar Date
+
+type Query {
+  tripPlans(userId: String!): [TripPlan!]!
+}

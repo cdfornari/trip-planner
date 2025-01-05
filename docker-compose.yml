@@ -203,8 +203,12 @@ services:
       target: build
     command: npm run start:dev query-api
     environment:
-      - PORT=${QUERY_API_PORT}
-      - NATS_SERVERS=nats://nats-server:4222
+      - DB_USER=$QUERY_DB_USER
+      - DB_PASSWORD=$QUERY_DB_PASSWORD
+      - SURREAL_HOST=query-db
+      - SURREAL_PORT=8000
+      - SURREAL_DATABASE=TRIPS
+      - SURREAL_NAMESPACE=MAIN
     depends_on:
       - eventstore
       - query-db
@@ -224,7 +228,7 @@ services:
     command: npm run start:dev projectors
     environment:
       - EVENT_STORE_HOST=eventstore
-      - EVENT_STORE_PORT=2113 
+      - EVENT_STORE_PORT=2113
       - DB_USER=$QUERY_DB_USER
       - DB_PASSWORD=$QUERY_DB_PASSWORD
       - SURREAL_HOST=query-db
