@@ -10,7 +10,6 @@ import { EventStoreService } from 'libs/core/infrastructure/event-store/event-st
 import { UuidGenerator } from 'libs/core/infrastructure/uuid/uuid-generator';
 import { RegisterDto } from 'libs/users/infrastructure/register.dto';
 import { LoginDto } from 'libs/users/infrastructure/login.dto';
-import { ExceptionsHandler } from '@nestjs/core/exceptions/exceptions-handler';
 import { ExceptionDecorator } from 'libs/core/application/decorators/exception-decorator';
 
 type JwtPayload = {

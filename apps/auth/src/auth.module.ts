@@ -15,7 +15,7 @@ import { Environment } from 'libs/core/utils/environment';
     JwtModule.register({
       global: true,
       secret: Environment.jwtSecret,
-      signOptions: { expiresIn: '2h' },
+      signOptions: { expiresIn: '1y' },
     }),
     RedisModule.forRootAsync({
       imports: [ConfigModule],
