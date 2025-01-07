@@ -11,7 +11,8 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
     }),
   );
-  app.useGlobalFilters(new RpcCustomExceptionFilter())
+  app.useGlobalFilters(new RpcCustomExceptionFilter());
+  app.enableCors();
   await app.listen(process.env.port ?? 3000);
 }
 bootstrap();

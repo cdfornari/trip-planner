@@ -3,8 +3,8 @@
 # ------------------------------------------------------
 
 type TripDate {
-  start: Date!
-  end: Date!
+  start: String!
+  end: String!
 }
 
 type TripBudget {
@@ -55,7 +55,7 @@ type Duration {
 
 type Activity {
   id: ID!
-  date: Date!
+  date: String!
   description: String!
   duration: Duration!
   price: PriceDetail!

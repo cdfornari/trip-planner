@@ -1,13 +1,12 @@
 import { ObjectType, Field, Int, Float, ID } from '@nestjs/graphql';
-import { DateScalar } from 'libs/core/infrastructure/gql/date.scalar';
 
 @ObjectType()
 class TripDate {
-  @Field(() => DateScalar)
-  start: Date;
+  @Field(() => String)
+  start: String;
 
-  @Field(() => DateScalar)
-  end: Date;
+  @Field(() => String)
+  end: String;
 }
 
 @ObjectType()
@@ -111,8 +110,8 @@ class Activity {
   @Field(() => ID)
   id: string;
 
-  @Field(() => DateScalar)
-  date: Date;
+  @Field(() => String)
+  date: String;
 
   @Field(() => String)
   description: string;
