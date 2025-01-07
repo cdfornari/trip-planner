@@ -1,4 +1,4 @@
-import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { EventStoreService } from 'libs/core/infrastructure/event-store/event-store.service';
 import { SagaStep } from 'libs/core/infrastructure/event-store/saga-step.decorator';
 import { SubscribeToGroup } from 'libs/core/infrastructure/event-store/subscribe-to-group.decorator';
@@ -20,21 +20,10 @@ const SUBSCRIPTION_GROUP_COMPENSATION = 'hotel-booking-compensation';
 
 @SagaStep
 @Injectable()
-export class HotelBookingListener implements OnApplicationBootstrap {
+export class HotelBookingListener {
   constructor(private readonly eventStore: EventStoreService) {}
 
-  async onApplicationBootstrap() {
-    await this.eventStore.createSubscriptionGroup(
-      FlightsBooked.name,
-      SUBSCRIPTION_GROUP,
-    );
-    await this.eventStore.createSubscriptionGroup(
-      VehicleRentalFailed.name,
-      SUBSCRIPTION_GROUP_COMPENSATION,
-    );
-  }
-
-  @SubscribeToGroup(SUBSCRIPTION_GROUP)
+  @SubscribeToGroup(FlightsBooked.name, SUBSCRIPTION_GROUP)
   async onEvent(
     event: FlightsBookedEvent,
     ack: () => Promise<void>,
@@ -49,7 +38,7 @@ export class HotelBookingListener implements OnApplicationBootstrap {
     await ack();
   }
 
-  @SubscribeToGroup(SUBSCRIPTION_GROUP_COMPENSATION)
+  @SubscribeToGroup(VehicleRentalFailed.name, SUBSCRIPTION_GROUP_COMPENSATION)
   async compensate(
     event: VehicleRentalFailedEvent,
     ack: () => Promise<void>,

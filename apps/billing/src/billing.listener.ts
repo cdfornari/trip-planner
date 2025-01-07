@@ -1,4 +1,4 @@
-import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { EventStoreService } from 'libs/core/infrastructure/event-store/event-store.service';
 import { SagaStep } from 'libs/core/infrastructure/event-store/saga-step.decorator';
 import { SubscribeToGroup } from 'libs/core/infrastructure/event-store/subscribe-to-group.decorator';
@@ -18,19 +18,13 @@ const SUBSCRIPTION_GROUP = 'book-activity-listener';
 
 @SagaStep
 @Injectable()
-export class BillingListener implements OnApplicationBootstrap {
+export class BillingListener {
   constructor(private readonly eventStore: EventStoreService) {}
 
-  async onApplicationBootstrap() {
-    try {
-      await this.eventStore.createSubscriptionGroup(
-        [ActivitiesBookingFinished.name, ActivitiesBookingSkipped.name],
-        SUBSCRIPTION_GROUP,
-      );
-    } catch {}
-  }
-
-  @SubscribeToGroup(SUBSCRIPTION_GROUP)
+  @SubscribeToGroup(
+    [ActivitiesBookingFinished.name, ActivitiesBookingSkipped.name],
+    SUBSCRIPTION_GROUP,
+  )
   async onEvent(
     event: ActivitiesBookingFinishedEvent | ActivitiesBookingSkippedEvent,
     ack: () => Promise<void>,

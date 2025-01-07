@@ -1,7 +1,6 @@
 import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
 import Surreal, { RecordId } from 'surrealdb';
 import { DomainEvent } from 'libs/core/domain/events';
-import { EventStoreService } from 'libs/core/infrastructure/event-store/event-store.service';
 import { Projector } from 'libs/core/infrastructure/event-store/projector.decorator';
 import { SubscribeToGroup } from 'libs/core/infrastructure/event-store/subscribe-to-group.decorator';
 import { InjectSurreal } from 'libs/core/infrastructure/surrealdb/inject-surreal.decorator';
@@ -52,21 +51,17 @@ const SUBSCRIPTION_GROUP = 'surreal.db-projector';
 @Projector
 @Injectable()
 export class SureealDbProjector implements OnApplicationBootstrap {
-  constructor(
-    private readonly eventStore: EventStoreService,
-    @InjectSurreal() private readonly surreal: Surreal,
-  ) {}
+  constructor(@InjectSurreal() private readonly surreal: Surreal) {}
 
   async onApplicationBootstrap() {
     try {
-      await this.eventStore.createSubscriptionGroup('ALL', SUBSCRIPTION_GROUP);
       await this.surreal.query('DEFINE TABLE IF NOT EXISTS trip SCHEMALESS;');
     } catch (error) {
       console.log(error);
     }
   }
 
-  @SubscribeToGroup(SUBSCRIPTION_GROUP)
+  @SubscribeToGroup('ALL', SUBSCRIPTION_GROUP)
   async onEvent(
     event: DomainEvent,
     ack: () => Promise<void>,
@@ -79,7 +74,7 @@ export class SureealDbProjector implements OnApplicationBootstrap {
       await ack();
     } catch (error) {
       console.log(error);
-      //await nack(error);
+      await nack(error);
     }
   }
 
