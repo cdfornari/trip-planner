@@ -30,7 +30,7 @@ services:
         target: /var/log/eventstore
 
   api-gateway:
-    container_name: api-gateway
+    #container_name: api-gateway
     restart: always
     build:
       context: .
@@ -46,11 +46,23 @@ services:
       - TRANSLATION_PATH=../../../resources/i18n
     depends_on:
       - nats-server
+    deploy:
+      replicas: 3
     volumes:
       - .:/src/app
       - /src/app/node_modules
+    #ports:
+    #  - ${API_GATEWAY_PORT}:3000
+  
+  gateway-nginx:
+    build:
+      context: .
+      dockerfile: ./nginx.Dockerfile
+    container_name: gateway-nginx
     ports:
-      - ${API_GATEWAY_PORT}:3000
+      - "3000:80"
+    depends_on:
+      - api-gateway
 
   auth-ms:
     container_name: auth-ms
@@ -88,7 +100,7 @@ services:
       - ${AUTHDB_PORT}:6379
       - 8011:8001
     volumes:
-      - ./data/redis_data:/data
+      - redis_data:/data
 
   activity-booking-ms:
     container_name: activity-booking-ms
@@ -245,3 +257,4 @@ services:
 volumes:
   eventstore-volume-data:
   eventstore-volume-logs:
+  redis_data:
