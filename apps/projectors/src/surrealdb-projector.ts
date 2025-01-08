@@ -61,7 +61,22 @@ export class SureealDbProjector implements OnApplicationBootstrap {
     }
   }
 
-  @SubscribeToGroup('ALL', SUBSCRIPTION_GROUP)
+  @SubscribeToGroup(
+    [
+      TripPlanRequested.name,
+      FlightsBooked.name,
+      FlightsBookingFailed.name,
+      HotelBooked.name,
+      HotelBookingFailed.name,
+      VehicleRentalBooked.name,
+      VehicleRentalFailed.name,
+      ActivityBooked.name,
+      ActivitiesBookingFailed.name,
+      TripPlanCompleted.name,
+      TripPlanFailed.name,
+    ],
+    SUBSCRIPTION_GROUP,
+  )
   async onEvent(
     event: DomainEvent,
     ack: () => Promise<void>,
